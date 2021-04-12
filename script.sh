@@ -125,7 +125,7 @@ if [ $? -ne 0 ]; then
   cp /etc/ssh/sshd_config /etc/ssh/sshd_config.bak
   echo 'PermitRootLogin no' >>/etc/ssh/sshd_config
   echo 'Port 2244' >>/etc/ssh/sshd_config
-  semanage port -a -t ssh_port -p tcp 2244
+  semanage port -a -t ssh_port_t -p tcp 2244
 
   echo "Agregando el servicio al arraque del sistema"
   chkconfig sshd on &>/dev/null
@@ -138,11 +138,15 @@ if [ $? -ne 0 ]; then
   firewall-cmd --permanent --add-port=2244/tcp &>/dev/null
   if [ $? -eq 0 ]; then
     echo "Puerto 2224 habilitado exitosamente"
+    echo "Reiniciando firewall"
+    firewall-cmd --reload &>/dev/null
+    systemctl restart sshd.service
   else
     echo "Hubo un problema Habilitando el puerto"
+    echo "Revise configuración del firewall e intente de nuevo"
+    exit 1
   fi
-  echo "Reiniciando firewall"
-  firewall-cmd --reload &>/dev/null
+
 else
   echo -e "Servicio SSH instalado"
   echo -e "Aplicando configuración personalizada para CloudUP"
@@ -151,7 +155,7 @@ else
   echo 'PermitRootLogin no' >>/etc/ssh/sshd_config
   echo 'Port 2244' >>/etc/ssh/sshd_config
 
-  semanage port -a -t ssh_port -p tcp 2244
+  semanage port -a -t ssh_port_t -p tcp 2244
   firewall-cmd --permanent --add-port=2244/tcp &>/dev/null
   if [ $? -eq 0 ]; then
     echo "Puerto 2224 habilitado exitosamente"
